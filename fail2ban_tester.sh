@@ -2,7 +2,8 @@
 
 show_help ()
 {
-  echo "USAGE: $0 -v <level> -t <time> -i <ip_list> -n <trigger> -I <interval>"
+  echo "USAGE: $0 -b <ban_time> -v <level> -t <time> -i <ip_list> -n <trigger> -I <interval>"
+  echo "       <ban_time> is the time in seconds during which an IP address would be banned (default: 300 seconds)"
   echo "       <interval> is a time inteval (in seconds) during which a maximum of <nbr> requests is allowed (default: 60 seconds)"
   echo "       <ip_list> is a list of IP addresses for which rate analyse should be done (defaut: all IP addresses found at the date specified)"
   echo "       <level> is the verbose level (0,1,2, or 3)"
@@ -11,14 +12,17 @@ show_help ()
 }
 
 # Process arguments and initialise variables
+ban_time=300
 day=""
 interval=60
 ip_list=""
 tmpfile="/tmp/ratelimit"$(shuf -i 1-100000 -n 1)".tmp"
 trigger=100
 verbose=0
-while getopts "h?v:t:n:i:I:" opt; do
+while getopts "b:h?i:I:n:t:v:" opt; do
     case "$opt" in
+    b)  ban_time=$OPTARG
+        ;;
     h|\?)
   	show_help
         exit 0
@@ -130,7 +134,7 @@ for ip in $ip_list;do
       printf %-40s $ip
       echo " would be banned at $start ($nbr requests within $interval second(s).) ***"
       
-      ban_endtime=$((start_epoch + 59))
+      ban_endtime=$((start_epoch + $ban_time))
     fi 
 
   done
